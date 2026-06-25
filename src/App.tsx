@@ -17,7 +17,7 @@ function AppInner() {
   const { knowledgePoints, loading, error } = useData()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [quizMode, setQuizMode] = useState(false)
-  const [showLitLabels, setShowLitLabels] = useState(true)
+  const [showLitLabels, setShowLitLabels] = useState(false)
 
   if (loading) {
     return (
