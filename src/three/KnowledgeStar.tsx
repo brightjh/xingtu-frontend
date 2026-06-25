@@ -71,6 +71,20 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
   const starPos = useMemo(() => new THREE.Vector3(...position), [position])
 
+  // 按颜色亮度归一化：黄/橙等高亮度色降强度，蓝/紫等低亮度色升强度，
+  // 让所有点亮星的泛光程度一致，避免黄色单独过曝。
+  const { litEmissive, glowBalance } = useMemo(() => {
+    const c = new THREE.Color(color)
+    const lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+    const safe = Math.max(lum, 0.18)
+    return {
+      // 目标峰值亮度（调低，避免低亮度色如粉/蓝被放大过曝）
+      litEmissive: THREE.MathUtils.clamp(0.92 / safe, 0.8, 2.4),
+      // 辉光叠加同样按亮度补偿（亮色辉光更易把背景推过曝）
+      glowBalance: THREE.MathUtils.clamp(0.4 / safe, 0.55, 1.15),
+    }
+  }, [color])
+
   // 让星星面朝向中轴线（Y 轴）：水平方向上，flat face 的法线（默认 +Z）
   // 旋转到指向 (0, y, 0)——只绕 Y 轴旋转，不倾斜向球心
   const faceAxisRotation = useMemo(() => {
@@ -106,7 +120,7 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
     const atmoFade = THREE.MathUtils.clamp((dist - ATMO_NEAR) / (ATMO_FAR - ATMO_NEAR), 0, 1)
 
     const baseEmissive = lit
-      ? 1.5 * (1 - atmoFade * 0.3)
+      ? litEmissive * (1 - atmoFade * 0.3)
       : 0.35 * (1 - atmoFade * 0.65)
     const emissiveIntensity = baseEmissive + (hovered ? 0.3 : 0) + flash * 3.5
     if (matRef.current) {
@@ -114,7 +128,7 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
       matRef.current.color = lit ? litColor : darkColor
     }
 
-    const baseGlow = (lit ? 0.22 : 0.08) * (1 - atmoFade * 0.5)
+    const baseGlow = (lit ? 0.22 * glowBalance : 0.08) * (1 - atmoFade * 0.5)
     const glowOpacity = baseGlow + (hovered ? 0.06 : 0) + flash * 0.18
     if (glowMatRef.current) glowMatRef.current.opacity = Math.min(glowOpacity, 0.4)
 
