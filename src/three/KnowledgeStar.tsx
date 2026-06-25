@@ -106,17 +106,17 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
     const atmoFade = THREE.MathUtils.clamp((dist - ATMO_NEAR) / (ATMO_FAR - ATMO_NEAR), 0, 1)
 
     const baseEmissive = lit
-      ? 2.0 * (1 - atmoFade * 0.3)
+      ? 1.5 * (1 - atmoFade * 0.3)
       : 0.35 * (1 - atmoFade * 0.65)
-    const emissiveIntensity = baseEmissive + (hovered ? 0.35 : 0) + flash * 5
+    const emissiveIntensity = baseEmissive + (hovered ? 0.3 : 0) + flash * 3.5
     if (matRef.current) {
       matRef.current.emissiveIntensity = emissiveIntensity
       matRef.current.color = lit ? litColor : darkColor
     }
 
-    const baseGlow = (lit ? 0.45 : 0.10) * (1 - atmoFade * 0.5)
-    const glowOpacity = baseGlow + (hovered ? 0.08 : 0) + flash * 0.25
-    if (glowMatRef.current) glowMatRef.current.opacity = Math.min(glowOpacity, 0.7)
+    const baseGlow = (lit ? 0.22 : 0.08) * (1 - atmoFade * 0.5)
+    const glowOpacity = baseGlow + (hovered ? 0.06 : 0) + flash * 0.18
+    if (glowMatRef.current) glowMatRef.current.opacity = Math.min(glowOpacity, 0.4)
 
     if (meshRef.current) {
       // 未点亮星星更小、带轻微闪烁，点亮星星更饱满
@@ -156,7 +156,7 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
           ref={matRef}
           color={lit ? litColor : darkColor}
           emissive={color}
-          emissiveIntensity={lit ? 2.0 : 0.35}
+          emissiveIntensity={lit ? 1.5 : 0.35}
           metalness={lit ? 0.05 : 0.15}
           roughness={lit ? 0.2 : 0.45}
           toneMapped={false}
@@ -164,13 +164,13 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
       </mesh>
 
       {/* 柔和光晕 */}
-      <mesh scale={lit ? 1.6 : 1.15}>
+      <mesh scale={lit ? 1.35 : 1.1}>
         <sphereGeometry args={[1, 24, 24]} />
         <meshBasicMaterial
           ref={glowMatRef}
           color={glowColor}
           transparent
-          opacity={lit ? 0.45 : 0.10}
+          opacity={lit ? 0.22 : 0.08}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           side={THREE.BackSide}

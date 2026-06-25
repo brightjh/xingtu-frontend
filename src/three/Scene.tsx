@@ -89,7 +89,7 @@ export function Scene({ onSelect, onClose, showLitLabels }: Props) {
           mipmapBlur
           luminanceThreshold={1}
           luminanceSmoothing={0.06}
-          intensity={1.3}
+          intensity={0.85}
         />
       </EffectComposer>
 
