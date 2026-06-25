@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { KnowledgePoint } from '../data/types'
-import { CHAPTER_COLOR } from '../data/knowledgePoints'
+import { useData } from '../data/DataProvider'
 import { useProgress } from '../state/useProgress'
 
 type Props = {
@@ -12,7 +12,8 @@ type Props = {
 
 export function QuizPanel({ point, onBack, onClose }: Props) {
   const submitQuiz = useProgress((s) => s.submitQuiz)
-  const color = CHAPTER_COLOR[point.chapter] ?? '#9fd2ff'
+  const { chapterColor } = useData()
+  const color = chapterColor[point.chapter] ?? '#9fd2ff'
   const questions = point.questions
   const n = questions.length
 

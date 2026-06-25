@@ -1,11 +1,12 @@
-import { CHAPTERS, KNOWLEDGE_POINTS } from '../data/knowledgePoints'
+import { useData } from '../data/DataProvider'
 import { useProgress } from '../state/useProgress'
 
 export function Hud() {
+  const { chapters, knowledgePoints } = useData()
   const progress = useProgress((s) => s.progress)
   const resetAll = useProgress((s) => s.resetAll)
-  const total = KNOWLEDGE_POINTS.length
-  const litCount = KNOWLEDGE_POINTS.filter((p) => progress[p.id]?.lit).length
+  const total = knowledgePoints.length
+  const litCount = knowledgePoints.filter((p) => progress[p.id]?.lit).length
   const pct = Math.round((litCount / total) * 100)
 
   const onReset = () => {
@@ -29,7 +30,7 @@ export function Hud() {
       </div>
 
       <div className="hud-legend">
-        {CHAPTERS.map((c) => (
+        {chapters.map((c) => (
           <span key={c.name} className="legend-item">
             <i className="legend-dot" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}` }} />
             {c.name}

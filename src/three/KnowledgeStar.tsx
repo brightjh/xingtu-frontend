@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { KnowledgePoint } from '../data/types'
-import { CHAPTER_COLOR } from '../data/knowledgePoints'
+import { useData } from '../data/DataProvider'
 import { usePointProgress } from '../state/useProgress'
 
 type Props = {
@@ -61,7 +61,8 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
     prevLit.current = lit
   }
 
-  const color = CHAPTER_COLOR[point.chapter] ?? '#9fd2ff'
+  const { chapterColor } = useData()
+  const color = chapterColor[point.chapter] ?? '#9fd2ff'
   const darkColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#5A4D3E'), 0.35), [color])
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
 

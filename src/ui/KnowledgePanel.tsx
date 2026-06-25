@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { KnowledgePoint } from '../data/types'
-import { CHAPTER_COLOR } from '../data/knowledgePoints'
+import { useData } from '../data/DataProvider'
 import { usePointProgress } from '../state/useProgress'
 
 type Props = {
@@ -11,7 +11,8 @@ type Props = {
 
 export function KnowledgePanel({ point, onStartQuiz, onClose }: Props) {
   const progress = usePointProgress(point.id)
-  const color = CHAPTER_COLOR[point.chapter] ?? '#9fd2ff'
+  const { chapterColor } = useData()
+  const color = chapterColor[point.chapter] ?? '#9fd2ff'
 
   return (
     <aside className="panel" style={{ '--accent': color } as CSSProperties}>

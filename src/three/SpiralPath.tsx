@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { KNOWLEDGE_POINTS } from '../data/knowledgePoints'
+import { useData } from '../data/DataProvider'
 import { useProgress } from '../state/useProgress'
 import { spiralPosition } from './spiral'
 
@@ -12,14 +12,15 @@ const LIT_RADIUS = 0.08
 /** 螺旋学习路径：暖沙细线 + 已点亮段柔和金光 */
 export function SpiralPath() {
   const progress = useProgress((s) => s.progress)
+  const { knowledgePoints } = useData()
   const glowRef = useRef<THREE.Group>(null)
 
   const { sorted, curve } = useMemo(() => {
-    const sorted = [...KNOWLEDGE_POINTS].sort((a, b) => a.order - b.order)
+    const sorted = [...knowledgePoints].sort((a, b) => a.order - b.order)
     const points = sorted.map((p, i) => new THREE.Vector3(...spiralPosition(i, sorted.length)))
     const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5)
     return { sorted, curve }
-  }, [])
+  }, [knowledgePoints])
 
   // 整条暗蓝基础路径
   const unlitGeometry = useMemo(
