@@ -12,8 +12,8 @@ type Props = {
 }
 
 const INTRO_DURATION = 2.8
-const INTRO_START_POS: [number, number, number] = [0, 20, 140]
-const INTRO_END_POS: [number, number, number] = [0, 0, 78]
+const INTRO_START_POS: [number, number, number] = [0, 25, 200]
+const INTRO_END_POS: [number, number, number] = [0, 0, 120]
 
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3)
@@ -58,7 +58,7 @@ export function Scene({ onSelect, onClose }: Props) {
       dpr={[1, 2]}
     >
       <color attach="background" args={['#87B8E8']} />
-      <fog attach="fog" args={['#E0CFC0', 100, 320]} />
+      <fog attach="fog" args={['#E0CFC0', 160, 500]} />
 
       <ambientLight intensity={0.42} color="#FFF5E8" />
       <hemisphereLight args={['#87CEEB', '#E0CFC0', 0.35]} />
@@ -76,8 +76,8 @@ export function Scene({ onSelect, onClose }: Props) {
         dampingFactor={0.08}
         autoRotate={introDone}
         autoRotateSpeed={0.2}
-        minDistance={15}
-        maxDistance={220}
+        minDistance={25}
+        maxDistance={350}
         minPolarAngle={Math.PI / 2 - 0.5}
         maxPolarAngle={Math.PI / 2 + 0.5}
         target={[0, 0, 0]}

@@ -61,7 +61,7 @@ export function SkyDome() {
   })
 
   return (
-    <mesh scale={[-300, 300, 300]}>
+    <mesh scale={[-400, 400, 400]}>
       <sphereGeometry args={[1, 32, 32]} />
       <shaderMaterial
         ref={materialRef}

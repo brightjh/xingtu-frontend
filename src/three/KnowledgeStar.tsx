@@ -13,9 +13,9 @@ type Props = {
 }
 
 const FLASH_DURATION = 1.2 // 点亮后闪光持续秒数
-const BASE_SIZE = 0.55
-const ATMO_NEAR = 15 // 大气透视开始距离
-const ATMO_FAR = 90 // 大气透视最大距离
+const BASE_SIZE = 0.85
+const ATMO_NEAR = 25 // 大气透视开始距离
+const ATMO_FAR = 140 // 大气透视最大距离
 
 function createSparkleShape(outerR = 1, innerR = 0.28): THREE.Shape {
   const shape = new THREE.Shape()
