@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A 3D "star map" learning page for junior-high physics. Each knowledge point is a star **randomly scattered across a Ghibli-style daytime sky** (a fixed random spot inside a bounded spherical shell — "漫天星星" — so nothing drifts out of click range); the backdrop is a gradient sky dome + fluffy shader clouds + soft sun glow. Clicking a star opens a knowledge panel, then a quiz; answering all questions correctly "lights up" that star (it glows and flashes). Pure frontend, progress persisted in the browser.
+A 3D "star map" learning page for junior-high physics. Covers the full curriculum across **15 chapters, 91 knowledge points**, each a star **randomly scattered across a Ghibli-style daytime sky** (a fixed random spot inside a bounded spherical shell — "漫天星星" — so nothing drifts out of click range); the backdrop is a gradient sky dome + fluffy shader clouds + soft sun glow. Clicking a star opens a knowledge panel, then a quiz (2–3 multiple-choice questions with explanations); answering all questions correctly "lights up" that star (it glows and flashes). Pure frontend, progress persisted in the browser.
+
+The knowledge-point data is sourced from `public/all_knowledge.md` (a structured outline of junior-high physics) and compiled into `public/data/knowledge-points.json` via a Python generation script.
 
 ## Commands
 
@@ -19,12 +21,12 @@ A 3D "star map" learning page for junior-high physics. Each knowledge point is a
 Four layers wired together in `src/App.tsx` (wrapped in `<DataProvider>` from `DataProvider.tsx`), which holds the only UI state (`selectedId`, `quizMode`):
 
 1. **Data** (`src/data/`) — fully data-driven, loaded from JSON at runtime.
-   - `public/data/knowledge-points.json` — **single source of truth** for all knowledge points + chapter definitions. Editing this JSON file (and refreshing) is the only step needed to add/change content.
+   - `public/data/knowledge-points.json` — **single source of truth** for all 91 knowledge points + 15 chapter definitions. Covers: 测量与运动, 声现象, 光现象, 质量与密度, 力, 力与运动, 压强, 浮力, 简单机械与功, 热学, 电学基础, 欧姆定律与电阻, 电功率与家庭电路, 电与磁, 信息能源与材料. Each point has `summary`, `keyPoints` (3–4 bullet points), and `questions` (2–3 multiple-choice with explanations). Editing this JSON (and refreshing) is the only step needed to add/change content; regenerate from `public/all_knowledge.md` for bulk changes.
    - `DataProvider.tsx` — React Context (`<DataProvider>`) that `fetch`es the JSON on mount and exposes `useData()` returning `{ chapters, knowledgePoints, chapterColor, loading, error }`.
    - `types.ts`: `KnowledgePoint`, `Question`, `ChapterMeta`, `PointProgress`.
    - `knowledgePoints.ts` — retains only type re-exports; all runtime data comes from the JSON file via `useData()`.
-   - The JSON URL defaults to `/data/knowledge-points.json`; override with the `VITE_DATA_URL` environment variable (e.g. `VITE_DATA_URL=https://cdn.example.com/data.json`).
-   - Stars are **scattered randomly within a bounded spherical shell** (see `spiral.ts`), not on a spiral; a point's `order` only seeds its stable position (and the default sort order), so each star keeps the same spot across reloads. `chapter` drives its color (CHAPTER colors are a soft pastel sky palette).
+   - The JSON URL defaults to `/data/knowledge-points.json`; override with the `VITE_DATA_URL` environment variable.
+   - Stars are **scattered randomly within a bounded spherical shell** (see `spiral.ts`), not on a spiral; a point's `order` only seeds its stable position (and the default sort order), so each star keeps the same spot across reloads. `chapter` drives its color — **15 soft pastel sky-palette colors**, one per chapter.
 
 2. **State** (`src/state/useProgress.ts`) — a Zustand store with the `persist` middleware writing to `localStorage` under key `xingtu-progress-v1`.
    - `submitQuiz(id, score, total)` sets `lit = score >= total` (a star lights only when **all** questions are correct) and never un-lits. Returns `{ passed }`.
