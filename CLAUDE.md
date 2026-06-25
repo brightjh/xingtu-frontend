@@ -16,12 +16,15 @@ A 3D "star map" learning page for junior-high physics. Each knowledge point is a
 
 ## Architecture
 
-Four layers wired together in `src/App.tsx`, which holds the only UI state (`selectedId`, `quizMode`):
+Four layers wired together in `src/App.tsx` (wrapped in `<DataProvider>` from `DataProvider.tsx`), which holds the only UI state (`selectedId`, `quizMode`):
 
-1. **Data** (`src/data/`) — single source of truth, fully data-driven.
-   - `knowledgePoints.ts`: `KNOWLEDGE_POINTS` array + `CHAPTERS` (defines chapter order center→outer and colors) + `CHAPTER_COLOR` map.
-   - `types.ts`: `KnowledgePoint`, `Question`, `PointProgress`.
-   - **Adding/changing content = editing this one file only.** Stars are **scattered randomly within a bounded spherical shell** (see `spiral.ts`), not on a spiral; a point's `order` only seeds its stable position (and the default sort order), so each star keeps the same spot across reloads. `chapter` drives its color (CHAPTER colors are a soft pastel sky palette).
+1. **Data** (`src/data/`) — fully data-driven, loaded from JSON at runtime.
+   - `public/data/knowledge-points.json` — **single source of truth** for all knowledge points + chapter definitions. Editing this JSON file (and refreshing) is the only step needed to add/change content.
+   - `DataProvider.tsx` — React Context (`<DataProvider>`) that `fetch`es the JSON on mount and exposes `useData()` returning `{ chapters, knowledgePoints, chapterColor, loading, error }`.
+   - `types.ts`: `KnowledgePoint`, `Question`, `ChapterMeta`, `PointProgress`.
+   - `knowledgePoints.ts` — retains only type re-exports; all runtime data comes from the JSON file via `useData()`.
+   - The JSON URL defaults to `/data/knowledge-points.json`; override with the `VITE_DATA_URL` environment variable (e.g. `VITE_DATA_URL=https://cdn.example.com/data.json`).
+   - Stars are **scattered randomly within a bounded spherical shell** (see `spiral.ts`), not on a spiral; a point's `order` only seeds its stable position (and the default sort order), so each star keeps the same spot across reloads. `chapter` drives its color (CHAPTER colors are a soft pastel sky palette).
 
 2. **State** (`src/state/useProgress.ts`) — a Zustand store with the `persist` middleware writing to `localStorage` under key `xingtu-progress-v1`.
    - `submitQuiz(id, score, total)` sets `lit = score >= total` (a star lights only when **all** questions are correct) and never un-lits. Returns `{ passed }`.
@@ -29,13 +32,13 @@ Four layers wired together in `src/App.tsx`, which holds the only UI state (`sel
 
 3. **3D scene** (`src/three/`) — runs inside the R3F `<Canvas>` in `Scene.tsx`. The scene is a **dreamy daytime sky**: `Scene.tsx` sets a sky-blue clear color (`#87B8E8`), warm-sand fog (`#E0CFC0`, 100–320), and warm-toned lights; R3F's default **ACES filmic tone mapping is ON**. The camera starts pulled back for a **global overview** (stars fill a large sphere), with a wide OrbitControls zoom range (`minDistance` 15 → `maxDistance` 220) so you can pull far out or dive in among the stars. The default view is **near-level** (a slight downward tilt, not bird's-eye), and the polar angle is clamped around the horizon on purpose — don't move it back to a top-down default.
    - `spiral.ts: spiralPosition(i, n)` → **scatters** star `i` at a deterministic random spot inside a spherical shell (`R_MIN`→`R_MAX`, default 6→28), seeded by `i` so each star's position is fixed across renders/reloads. (Name retained for compatibility; no longer a spiral.) `StarsSpiral` just maps the sorted points into a bare `<group>` (no tilt — it's a 3D cloud now).
-   - `KnowledgeStar.tsx` — one clickable star rendered as a **4-point extruded sparkle** (`ExtrudeGeometry`). Detects `lit` going false→true via a ref and runs a `useFrame` emissive **flash** pulse (one-shot). Hover scales it up + bumps emissive; a `drei <Html>` label shows on hover *or* when lit.
+   - `KnowledgeStar.tsx` — one clickable star rendered as a **4-point extruded sparkle** (`ExtrudeGeometry`). Uses `useData().chapterColor` for the chapter color. Detects `lit` going false→true via a ref and runs a `useFrame` emissive **flash** pulse (one-shot). Hover scales it up + bumps emissive; a `drei <Html>` label shows on hover *or* when lit.
    - `GalaxyBackground.tsx` — a thin wrapper that mounts `<SkyDome />` + `<GhibliClouds />` (the old `drei <Stars>` / rotating point-cloud background is gone).
    - `SkyDome.tsx` — custom shader sphere: horizon→zenith gradient (`#E0CFC0`→`#5A94C8`) with a soft sun glow; the horizon color slowly breathes via HSL.
    - `GhibliClouds.tsx` — 18 cloud meshes from custom GLSL (value-noise + fbm) for fluffy Ghibli edges, scattered around the scene; the whole group drifts.
-   - `SpiralPath.tsx` — **obsolete & not mounted**; it used to connect consecutive (spiral-ordered) stars with a glowing tube. With stars now randomly scattered it no longer makes sense — left in place but unused.
+   - `SpiralPath.tsx` — **obsolete & not mounted**; it used to connect consecutive (spiral-ordered) stars with a glowing tube. With stars now randomly scattered it no longer makes sense — left in place but unused. Also migrated to `useData()`.
 
-4. **UI overlay** (`src/ui/`) — plain DOM, absolutely positioned over the canvas. `Hud` (progress + legend), `KnowledgePanel` (info + "开始做题"), `QuizPanel` (per-question reveal + scoring). The 3D star's `onClick` → `App.onSelect(id)`; `Canvas onPointerMissed` → closes the panel.
+4. **UI overlay** (`src/ui/`) — plain DOM, absolutely positioned over the canvas. `Hud` (progress + legend, uses `useData().chapters` + `useData().knowledgePoints`), `KnowledgePanel` (info + "开始做题", uses `useData().chapterColor`), `QuizPanel` (per-question reveal + scoring, uses `useData().chapterColor`). The 3D star's `onClick` → `App.onSelect(id)`; `Canvas onPointerMissed` → closes the panel.
 
 ### The selective-bloom technique (do not "fix" the magic numbers)
 
