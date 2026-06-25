@@ -12,15 +12,25 @@ const LIT_RADIUS = 0.08
 /** 螺旋学习路径：暖沙细线 + 已点亮段柔和金光 */
 export function SpiralPath() {
   const progress = useProgress((s) => s.progress)
-  const { knowledgePoints } = useData()
+  const { knowledgePoints, chapters } = useData()
   const glowRef = useRef<THREE.Group>(null)
+
+  const chapterOrderMap = useMemo(() => {
+    const map: Record<string, number> = {}
+    chapters.forEach((c, i) => {
+      map[c.name] = i
+    })
+    return map
+  }, [chapters])
 
   const { sorted, curve } = useMemo(() => {
     const sorted = [...knowledgePoints].sort((a, b) => a.order - b.order)
-    const points = sorted.map((p, i) => new THREE.Vector3(...spiralPosition(i, sorted.length)))
+    const points = sorted.map(
+      (p, i) => new THREE.Vector3(...spiralPosition(i, sorted.length, p.chapter, chapterOrderMap[p.chapter] ?? 0)),
+    )
     const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5)
     return { sorted, curve }
-  }, [knowledgePoints])
+  }, [knowledgePoints, chapterOrderMap])
 
   // 整条暗蓝基础路径
   const unlitGeometry = useMemo(

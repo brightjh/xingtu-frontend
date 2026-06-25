@@ -1,6 +1,8 @@
-import { Canvas } from '@react-three/fiber'
+import { useRef, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import * as THREE from 'three'
 import { GalaxyBackground } from './GalaxyBackground'
 import { StarsSpiral } from './StarsSpiral'
 
@@ -9,10 +11,48 @@ type Props = {
   onClose: () => void
 }
 
+const INTRO_DURATION = 2.8
+const INTRO_START_POS: [number, number, number] = [0, 20, 140]
+const INTRO_END_POS: [number, number, number] = [0, 0, 78]
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+function CameraIntro({ onDone }: { onDone: () => void }) {
+  const camera = useThree((state) => state.camera)
+  const doneRef = useRef(false)
+  const startTime = useRef(-1)
+  const startPos = useRef(new THREE.Vector3(...INTRO_START_POS))
+  const endPos = useRef(new THREE.Vector3(...INTRO_END_POS))
+
+  useFrame((state) => {
+    if (doneRef.current) return
+
+    const t = state.clock.elapsedTime
+    if (startTime.current < 0) startTime.current = t
+    const elapsed = t - startTime.current
+    const progress = Math.min(elapsed / INTRO_DURATION, 1)
+    const eased = easeOutCubic(progress)
+
+    camera.position.lerpVectors(startPos.current, endPos.current, eased)
+    camera.lookAt(0, 0, 0)
+
+    if (progress >= 1) {
+      doneRef.current = true
+      onDone()
+    }
+  })
+
+  return null
+}
+
 export function Scene({ onSelect, onClose }: Props) {
+  const [introDone, setIntroDone] = useState(false)
+
   return (
     <Canvas
-      camera={{ position: [0, 20, 78], fov: 50, near: 0.3, far: 1500 }}
+      camera={{ position: INTRO_START_POS, fov: 50, near: 0.3, far: 1500 }}
       gl={{ antialias: true }}
       onPointerMissed={() => onClose()}
       dpr={[1, 2]}
@@ -28,11 +68,13 @@ export function Scene({ onSelect, onClose }: Props) {
       <GalaxyBackground />
       <StarsSpiral onSelect={onSelect} />
 
+      <CameraIntro onDone={() => setIntroDone(true)} />
+
       <OrbitControls
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
-        autoRotate
+        autoRotate={introDone}
         autoRotateSpeed={0.2}
         minDistance={15}
         maxDistance={220}

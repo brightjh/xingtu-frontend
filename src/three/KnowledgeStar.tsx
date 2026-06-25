@@ -14,6 +14,8 @@ type Props = {
 
 const FLASH_DURATION = 1.2 // 点亮后闪光持续秒数
 const BASE_SIZE = 0.55
+const ATMO_NEAR = 15 // 大气透视开始距离
+const ATMO_FAR = 90 // 大气透视最大距离
 
 function createSparkleShape(outerR = 1, innerR = 0.28): THREE.Shape {
   const shape = new THREE.Shape()
@@ -65,6 +67,7 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
   const color = chapterColor[point.chapter] ?? '#9fd2ff'
   const darkColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#5A4D3E'), 0.35), [color])
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
+  const starPos = useMemo(() => new THREE.Vector3(...position), [position])
 
   const geometry = useMemo(() => createSparkleGeometry(), [])
   useEffect(() => {
@@ -87,15 +90,25 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
       if (flash <= 0) flashStart.current = -1
     }
 
-    const baseEmissive = lit ? 1.2 : 0.42
+    // 大气透视：越远的星星越暗淡
+    const dist = state.camera.position.distanceTo(starPos)
+    const atmoFade = THREE.MathUtils.clamp((dist - ATMO_NEAR) / (ATMO_FAR - ATMO_NEAR), 0, 1)
+
+    const baseEmissive = lit
+      ? 1.2 * (1 - atmoFade * 0.35)
+      : 0.42 * (1 - atmoFade * 0.65)
     const emissiveIntensity = baseEmissive + (hovered ? 0.35 : 0) + flash * 5
     if (matRef.current) matRef.current.emissiveIntensity = emissiveIntensity
 
-    const glowOpacity = (lit ? 0.28 : 0.12) + (hovered ? 0.08 : 0) + flash * 0.25
+    const baseGlow = (lit ? 0.28 : 0.12) * (1 - atmoFade * 0.5)
+    const glowOpacity = baseGlow + (hovered ? 0.08 : 0) + flash * 0.25
     if (glowMatRef.current) glowMatRef.current.opacity = Math.min(glowOpacity, 0.7)
 
     if (meshRef.current) {
-      const s = BASE_SIZE * (1 + (hovered ? 0.28 : 0) + flash * 0.45)
+      // 未点亮星星更小、带轻微闪烁，点亮星星更饱满
+      const twinkle = lit ? 0 : Math.sin(t * 1.5 + point.order) * 0.04
+      const sizeBase = lit ? BASE_SIZE : BASE_SIZE * 0.87
+      const s = sizeBase * (1 + (hovered ? 0.28 : 0) + flash * 0.45 + twinkle)
       meshRef.current.scale.setScalar(s)
       // 星星缓慢自转 + 轻微摆动，像在呼吸
       meshRef.current.rotation.z += 0.004
