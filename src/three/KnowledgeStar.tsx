@@ -69,6 +69,15 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
   const starPos = useMemo(() => new THREE.Vector3(...position), [position])
 
+  // 让星星面朝向中轴线（Y 轴）：水平方向上，flat face 的法线（默认 +Z）
+  // 旋转到指向 (0, y, 0)——只绕 Y 轴旋转，不倾斜向球心
+  const faceAxisRotation = useMemo(() => {
+    const dx = -position[0]
+    const dz = -position[2]
+    if (Math.abs(dx) < 0.001 && Math.abs(dz) < 0.001) return 0
+    return Math.atan2(dx, dz)
+  }, [position])
+
   const geometry = useMemo(() => createSparkleGeometry(), [])
   useEffect(() => {
     // 让星星几何体中心居中
@@ -111,9 +120,10 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
       const s = sizeBase * (1 + (hovered ? 0.28 : 0) + flash * 0.45 + twinkle)
       meshRef.current.scale.setScalar(s)
       // 星星缓慢自转 + 轻微摆动，像在呼吸
+      // 基础 Y 轴旋转让星星 flat face 朝向中轴线
+      meshRef.current.rotation.y = faceAxisRotation + Math.cos(t * 0.35 + point.order) * 0.04
       meshRef.current.rotation.z += 0.004
       meshRef.current.rotation.x = Math.sin(t * 0.5 + point.order) * 0.06
-      meshRef.current.rotation.y = Math.cos(t * 0.35 + point.order) * 0.04
     }
   })
 
