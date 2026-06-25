@@ -4,9 +4,11 @@ import * as THREE from 'three'
 
 const cloudVertexShader = `
   varying vec3 vWorldPosition;
+  varying vec3 vModelCenter;
   void main() {
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPosition = worldPos.xyz;
+    vModelCenter = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
@@ -19,6 +21,7 @@ const cloudFragmentShader = `
   uniform float seed;
   uniform float time;
   varying vec3 vWorldPosition;
+  varying vec3 vModelCenter;
 
   float hash(vec3 p) {
     p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
@@ -60,7 +63,7 @@ const cloudFragmentShader = `
 
   void main() {
     // 以模型中心为原点的局部坐标
-    vec3 local = vWorldPosition - (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    vec3 local = vWorldPosition - vModelCenter;
     float dist = length(local);
 
     // 从中心向外的柔和衰减：外边缘自然消散
