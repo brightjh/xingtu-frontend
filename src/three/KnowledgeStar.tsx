@@ -10,6 +10,7 @@ type Props = {
   point: KnowledgePoint
   position: [number, number, number]
   onSelect: (id: string) => void
+  showLitLabel?: boolean
 }
 
 const FLASH_DURATION = 1.2 // 点亮后闪光持续秒数
@@ -46,7 +47,7 @@ function createSparkleGeometry(): THREE.ExtrudeGeometry {
   })
 }
 
-export function KnowledgeStar({ point, position, onSelect }: Props) {
+export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }: Props) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const matRef = useRef<THREE.MeshStandardMaterial>(null!)
   const glowMatRef = useRef<THREE.MeshBasicMaterial>(null!)
@@ -65,7 +66,8 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
 
   const { chapterColor } = useData()
   const color = chapterColor[point.chapter] ?? '#9fd2ff'
-  const darkColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#5A4D3E'), 0.35), [color])
+  const darkColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#5A4D3E'), lit ? 0.12 : 0.35), [color, lit])
+  const litColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.3), [color])
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
   const starPos = useMemo(() => new THREE.Vector3(...position), [position])
 
@@ -104,19 +106,22 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
     const atmoFade = THREE.MathUtils.clamp((dist - ATMO_NEAR) / (ATMO_FAR - ATMO_NEAR), 0, 1)
 
     const baseEmissive = lit
-      ? 1.2 * (1 - atmoFade * 0.35)
-      : 0.42 * (1 - atmoFade * 0.65)
+      ? 2.0 * (1 - atmoFade * 0.3)
+      : 0.35 * (1 - atmoFade * 0.65)
     const emissiveIntensity = baseEmissive + (hovered ? 0.35 : 0) + flash * 5
-    if (matRef.current) matRef.current.emissiveIntensity = emissiveIntensity
+    if (matRef.current) {
+      matRef.current.emissiveIntensity = emissiveIntensity
+      matRef.current.color = lit ? litColor : darkColor
+    }
 
-    const baseGlow = (lit ? 0.28 : 0.12) * (1 - atmoFade * 0.5)
+    const baseGlow = (lit ? 0.45 : 0.10) * (1 - atmoFade * 0.5)
     const glowOpacity = baseGlow + (hovered ? 0.08 : 0) + flash * 0.25
     if (glowMatRef.current) glowMatRef.current.opacity = Math.min(glowOpacity, 0.7)
 
     if (meshRef.current) {
       // 未点亮星星更小、带轻微闪烁，点亮星星更饱满
       const twinkle = lit ? 0 : Math.sin(t * 1.5 + point.order) * 0.04
-      const sizeBase = lit ? BASE_SIZE : BASE_SIZE * 0.87
+      const sizeBase = lit ? BASE_SIZE * 1.15 : BASE_SIZE * 0.75
       const s = sizeBase * (1 + (hovered ? 0.28 : 0) + flash * 0.45 + twinkle)
       meshRef.current.scale.setScalar(s)
       // 星星缓慢自转 + 轻微摆动，像在呼吸
@@ -149,23 +154,23 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
         <primitive object={geometry} />
         <meshStandardMaterial
           ref={matRef}
-          color={darkColor}
+          color={lit ? litColor : darkColor}
           emissive={color}
-          emissiveIntensity={lit ? 1.2 : 0.42}
-          metalness={0.1}
-          roughness={0.35}
+          emissiveIntensity={lit ? 2.0 : 0.35}
+          metalness={lit ? 0.05 : 0.15}
+          roughness={lit ? 0.2 : 0.45}
           toneMapped={false}
         />
       </mesh>
 
       {/* 柔和光晕 */}
-      <mesh scale={1.25}>
+      <mesh scale={lit ? 1.6 : 1.15}>
         <sphereGeometry args={[1, 24, 24]} />
         <meshBasicMaterial
           ref={glowMatRef}
           color={glowColor}
           transparent
-          opacity={lit ? 0.28 : 0.12}
+          opacity={lit ? 0.45 : 0.10}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
           side={THREE.BackSide}
@@ -173,7 +178,7 @@ export function KnowledgeStar({ point, position, onSelect }: Props) {
         />
       </mesh>
 
-      {(hovered || lit) && (
+      {(hovered || (lit && showLitLabel)) && (
         <Html center position={[0, 1.4, 0]} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
           <div className="star-label" style={{ borderLeftColor: color }}>
             <span className="star-label-title">{point.title}</span>

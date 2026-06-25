@@ -9,6 +9,7 @@ import { StarsSpiral } from './StarsSpiral'
 type Props = {
   onSelect: (id: string) => void
   onClose: () => void
+  showLitLabels: boolean
 }
 
 const INTRO_DURATION = 2.8
@@ -47,7 +48,7 @@ function CameraIntro({ onDone }: { onDone: () => void }) {
   return null
 }
 
-export function Scene({ onSelect, onClose }: Props) {
+export function Scene({ onSelect, onClose, showLitLabels }: Props) {
   const [introDone, setIntroDone] = useState(false)
 
   return (
@@ -66,7 +67,7 @@ export function Scene({ onSelect, onClose }: Props) {
       <pointLight position={[-10, 8, -8]} intensity={0.25} color="#FFD0A0" distance={60} decay={2} />
 
       <GalaxyBackground />
-      <StarsSpiral onSelect={onSelect} />
+      <StarsSpiral onSelect={onSelect} showLitLabels={showLitLabels} />
 
       <CameraIntro onDone={() => setIntroDone(true)} />
 

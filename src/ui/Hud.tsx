@@ -1,7 +1,12 @@
 import { useData } from '../data/DataProvider'
 import { useProgress } from '../state/useProgress'
 
-export function Hud() {
+type Props = {
+  showLitLabels: boolean
+  onToggleLitLabels: () => void
+}
+
+export function Hud({ showLitLabels, onToggleLitLabels }: Props) {
   const { chapters, knowledgePoints } = useData()
   const progress = useProgress((s) => s.progress)
   const resetAll = useProgress((s) => s.resetAll)
@@ -38,9 +43,18 @@ export function Hud() {
         ))}
       </div>
 
-      <button className="btn-ghost hud-reset" onClick={onReset}>
-        重置进度
-      </button>
+      <div className="hud-actions">
+        <button
+          className={`btn-ghost hud-toggle-lit${showLitLabels ? '' : ' inactive'}`}
+          onClick={onToggleLitLabels}
+        >
+          {showLitLabels ? '隐藏已点亮' : '显示已点亮'}
+        </button>
+
+        <button className="btn-ghost hud-reset" onClick={onReset}>
+          重置进度
+        </button>
+      </div>
     </div>
   )
 }

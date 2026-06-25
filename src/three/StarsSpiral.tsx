@@ -3,9 +3,9 @@ import { useData } from '../data/DataProvider'
 import { spiralPosition } from './spiral'
 import { KnowledgeStar } from './KnowledgeStar'
 
-type Props = { onSelect: (id: string) => void }
+type Props = { onSelect: (id: string) => void; showLitLabels: boolean }
 
-export function StarsSpiral({ onSelect }: Props) {
+export function StarsSpiral({ onSelect, showLitLabels }: Props) {
   const { knowledgePoints, chapters } = useData()
   // 防御性按 order 排序，保证从中心到外圈的顺序
   const points = useMemo(
@@ -29,6 +29,7 @@ export function StarsSpiral({ onSelect }: Props) {
           point={p}
           position={spiralPosition(i, points.length, p.chapter, chapterOrderMap[p.chapter] ?? 0)}
           onSelect={onSelect}
+          showLitLabel={showLitLabels}
         />
       ))}
     </group>
