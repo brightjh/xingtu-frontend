@@ -52,7 +52,8 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
   const matRef = useRef<THREE.MeshStandardMaterial>(null!)
   const glowMatRef = useRef<THREE.MeshBasicMaterial>(null!)
   const [hovered, setHovered] = useState(false)
-  const progress = usePointProgress(point.id)
+  const { chapterColor, mode, subject } = useData()
+  const progress = usePointProgress(subject.id, point.id)
   const lit = progress.lit
 
   // 检测 lit 从 false→true，触发一次闪光
@@ -64,8 +65,9 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
     prevLit.current = lit
   }
 
-  const { chapterColor } = useData()
   const color = chapterColor[point.chapter] ?? '#9fd2ff'
+  // 化学「元素之谜」：点亮前不剧透元素名，显示占位符
+  const labelText = mode === 'formula' && !lit ? '？ 元素之谜' : point.title
   const darkColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#5A4D3E'), lit ? 0.12 : 0.35), [color, lit])
   const litColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.3), [color])
   const glowColor = useMemo(() => new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.45), [color])
@@ -195,7 +197,7 @@ export function KnowledgeStar({ point, position, onSelect, showLitLabel = true }
       {(hovered || (lit && showLitLabel)) && (
         <Html center position={[0, 1.4, 0]} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
           <div className="star-label" style={{ borderLeftColor: color }}>
-            <span className="star-label-title">{point.title}</span>
+            <span className="star-label-title">{labelText}</span>
             {lit && <span className="star-label-done">已点亮</span>}
           </div>
         </Html>

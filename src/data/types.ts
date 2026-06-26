@@ -17,6 +17,13 @@ export type KnowledgePoint = {
   summary: string
   keyPoints: string[]
   questions: Question[]
+  // ── 化学「元素之谜」专用（formula 模式）字段，物理学科为空 ──
+  /** 元素符号，如 H、Fe（点亮后展示，也用于判定答案） */
+  symbol?: string
+  /** 单质化学式（展示用，含下标），如 H₂、O₂、Fe */
+  formula?: string
+  /** 元素说明（点亮后展示） */
+  explanation?: string
 }
 
 export type ChapterMeta = {

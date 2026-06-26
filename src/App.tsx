@@ -1,23 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Scene } from './three/Scene'
 import { Hud } from './ui/Hud'
 import { KnowledgePanel } from './ui/KnowledgePanel'
 import { QuizPanel } from './ui/QuizPanel'
+import { ElementPanel } from './ui/ElementPanel'
 import { DataProvider, useData } from './data/DataProvider'
+import { DEFAULT_SUBJECT, getSubject } from './data/subjects'
 
 export default function App() {
+  const [subjectId, setSubjectId] = useState(DEFAULT_SUBJECT.id)
+  const subject = getSubject(subjectId)
+
   return (
-    <DataProvider>
-      <AppInner />
+    <DataProvider subject={subject}>
+      <AppInner subjectId={subjectId} onSubjectChange={setSubjectId} />
     </DataProvider>
   )
 }
 
-function AppInner() {
-  const { knowledgePoints, loading, error } = useData()
+function AppInner({
+  subjectId,
+  onSubjectChange,
+}: {
+  subjectId: string
+  onSubjectChange: (id: string) => void
+}) {
+  const { knowledgePoints, mode, loading, error } = useData()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [quizMode, setQuizMode] = useState(false)
   const [showLitLabels, setShowLitLabels] = useState(false)
+
+  // 切换学科时关闭任何打开的面板，避免显示上一学科的点
+  useEffect(() => {
+    setSelectedId(null)
+    setQuizMode(false)
+  }, [subjectId])
 
   if (loading) {
     return (
@@ -55,9 +72,18 @@ function AppInner() {
     <div className="app">
       <Scene onSelect={handleSelect} onClose={closeAll} showLitLabels={showLitLabels} />
 
-      <Hud showLitLabels={showLitLabels} onToggleLitLabels={() => setShowLitLabels((v) => !v)} />
+      <Hud
+        showLitLabels={showLitLabels}
+        onToggleLitLabels={() => setShowLitLabels((v) => !v)}
+        subjectId={subjectId}
+        onSubjectChange={onSubjectChange}
+      />
 
-      {point && !quizMode && (
+      {/* 化学：填化学式模式 —— 单一面板（谜面 + 输入 / 谜底） */}
+      {point && mode === 'formula' && <ElementPanel point={point} onClose={closeAll} />}
+
+      {/* 物理：选择题模式 —— 知识点面板 + 做题面板 */}
+      {point && mode === 'quiz' && !quizMode && (
         <KnowledgePanel
           point={point}
           onStartQuiz={() => setQuizMode(true)}
@@ -65,7 +91,7 @@ function AppInner() {
         />
       )}
 
-      {point && quizMode && (
+      {point && mode === 'quiz' && quizMode && (
         <QuizPanel point={point} onBack={() => setQuizMode(false)} onClose={closeAll} />
       )}
 

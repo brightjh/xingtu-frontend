@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useData } from '../data/DataProvider'
-import { useProgress } from '../state/useProgress'
+import { useSubjectProgress } from '../state/useProgress'
 import { spiralPosition } from './spiral'
 
 const CURVE_SEGMENTS = 128
@@ -11,8 +11,8 @@ const LIT_RADIUS = 0.08
 
 /** 螺旋学习路径：暖沙细线 + 已点亮段柔和金光 */
 export function SpiralPath() {
-  const progress = useProgress((s) => s.progress)
-  const { knowledgePoints, chapters } = useData()
+  const { knowledgePoints, chapters, subject } = useData()
+  const progress = useSubjectProgress(subject.id)
   const glowRef = useRef<THREE.Group>(null)
 
   const chapterOrderMap = useMemo(() => {

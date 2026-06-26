@@ -12,7 +12,7 @@ type Props = {
 
 export function QuizPanel({ point, onBack, onClose }: Props) {
   const submitQuiz = useProgress((s) => s.submitQuiz)
-  const { chapterColor } = useData()
+  const { chapterColor, subject } = useData()
   const color = chapterColor[point.chapter] ?? '#9fd2ff'
   const questions = point.questions
   const n = questions.length
@@ -47,7 +47,7 @@ export function QuizPanel({ point, onBack, onClose }: Props) {
     if (isLast) {
       // correct 数组在之前的 choose 中已更新；这里读取的是最新渲染值
       const score = correct.filter(Boolean).length
-      const res = submitQuiz(point.id, score, n)
+      const res = submitQuiz(subject.id, point.id, score, n)
       setPassed(res.passed)
       setFinished(true)
     } else {

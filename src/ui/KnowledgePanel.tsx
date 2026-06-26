@@ -10,8 +10,8 @@ type Props = {
 }
 
 export function KnowledgePanel({ point, onStartQuiz, onClose }: Props) {
-  const progress = usePointProgress(point.id)
-  const { chapterColor } = useData()
+  const { chapterColor, subject } = useData()
+  const progress = usePointProgress(subject.id, point.id)
   const color = chapterColor[point.chapter] ?? '#9fd2ff'
 
   return (

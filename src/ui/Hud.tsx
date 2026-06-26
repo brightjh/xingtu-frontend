@@ -1,28 +1,47 @@
 import { useData } from '../data/DataProvider'
-import { useProgress } from '../state/useProgress'
+import { useProgress, useSubjectProgress } from '../state/useProgress'
+import { SUBJECTS } from '../data/subjects'
 
 type Props = {
   showLitLabels: boolean
   onToggleLitLabels: () => void
+  subjectId: string
+  onSubjectChange: (id: string) => void
 }
 
-export function Hud({ showLitLabels, onToggleLitLabels }: Props) {
-  const { chapters, knowledgePoints } = useData()
-  const progress = useProgress((s) => s.progress)
-  const resetAll = useProgress((s) => s.resetAll)
+export function Hud({ showLitLabels, onToggleLitLabels, subjectId, onSubjectChange }: Props) {
+  const { chapters, knowledgePoints, subject, mode } = useData()
+  const progress = useSubjectProgress(subject.id)
+  const resetSubject = useProgress((s) => s.resetSubject)
   const total = knowledgePoints.length
   const litCount = knowledgePoints.filter((p) => progress[p.id]?.lit).length
-  const pct = Math.round((litCount / total) * 100)
+  const pct = total > 0 ? Math.round((litCount / total) * 100) : 0
 
   const onReset = () => {
-    if (window.confirm('确定要重置所有点亮进度吗？')) resetAll()
+    if (window.confirm(`确定要重置「${subject.name}」的点亮进度吗？`)) resetSubject(subject.id)
   }
 
   return (
     <div className="hud">
+      <div className="subject-switch">
+        {SUBJECTS.map((s) => (
+          <button
+            key={s.id}
+            className={`subject-btn${s.id === subjectId ? ' active' : ''}`}
+            onClick={() => onSubjectChange(s.id)}
+          >
+            {s.short}
+          </button>
+        ))}
+      </div>
+
       <div className="hud-title">
-        <h1>星图 · 初中物理</h1>
-        <p>点击星星查看知识点并做题，答对全部题目即可点亮 ✦</p>
+        <h1>星图 · {subject.name}</h1>
+        <p>
+          {mode === 'formula'
+            ? '点击星星，根据元素谜面输入化学式，答对即可点亮 ✦'
+            : '点击星星查看知识点并做题，答对全部题目即可点亮 ✦'}
+        </p>
       </div>
 
       <div className="hud-progress">

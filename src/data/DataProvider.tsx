@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { ChapterMeta, KnowledgePoint } from './types'
+import type { Subject, SubjectMode } from './subjects'
 
 /** JSON 文件的顶层结构 */
 type DataFile = {
@@ -9,6 +10,10 @@ type DataFile = {
 
 /** 通过 Context 暴露给整棵组件树的数据 */
 type DataContext = {
+  /** 当前学科 */
+  subject: Subject
+  /** 当前学科的答题模式（quiz / formula），便于组件分支 */
+  mode: SubjectMode
   chapters: ChapterMeta[]
   knowledgePoints: KnowledgePoint[]
   /** 由章节名 → 颜色的快捷映射，由 chapters 派生 */
@@ -21,35 +26,46 @@ type DataContext = {
 
 const Ctx = createContext<DataContext | null>(null)
 
-/** 数据文件的 URL，可通过环境变量覆盖 */
-const DATA_URL = import.meta.env.VITE_DATA_URL ?? '/data/knowledge-points.json'
-
-export function DataProvider({ children }: { children: ReactNode }) {
+export function DataProvider({ subject, children }: { subject: Subject; children: ReactNode }) {
   const [data, setData] = useState<DataFile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(DATA_URL)
+    // 切换学科时重置状态并重新拉取对应数据
+    let cancelled = false
+    setData(null)
+    setLoading(true)
+    setError(null)
+
+    fetch(subject.dataUrl)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json() as Promise<DataFile>
       })
       .then((json) => {
+        if (cancelled) return
         setData(json)
         setLoading(false)
       })
       .catch((e) => {
+        if (cancelled) return
         setError(e instanceof Error ? e.message : String(e))
         setLoading(false)
       })
-  }, [])
+
+    return () => {
+      cancelled = true
+    }
+  }, [subject.dataUrl])
 
   const chapterColor: Record<string, string> = data
     ? Object.fromEntries(data.chapters.map((c) => [c.name, c.color]))
     : {}
 
   const value: DataContext = {
+    subject,
+    mode: subject.mode,
     chapters: data?.chapters ?? [],
     knowledgePoints: data?.knowledgePoints ?? [],
     chapterColor,

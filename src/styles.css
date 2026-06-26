@@ -601,6 +601,133 @@ body,
   border-radius: 3px;
 }
 
+/* ── 学科切换 ─────────────────────────────── */
+.subject-switch {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.subject-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(90, 77, 62, 0.06);
+  color: var(--text-dim);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.subject-btn:hover {
+  background: rgba(90, 77, 62, 0.12);
+}
+
+.subject-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, #8AB8E8, #E8A070);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(138, 184, 232, 0.4);
+}
+
+/* ── 化学「元素之谜」面板 ─────────────────── */
+.riddle-text {
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.formula-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  font-size: 18px;
+  letter-spacing: 1px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formula-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.formula-input.is-wrong {
+  border-color: #E08A7A;
+  box-shadow: 0 0 0 3px rgba(224, 138, 122, 0.18);
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.formula-feedback {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.formula-feedback.ok {
+  color: #2E8B57;
+  background: rgba(144, 232, 176, 0.22);
+}
+
+.formula-feedback.no {
+  color: #C0604E;
+  background: rgba(224, 138, 122, 0.16);
+}
+
+.element-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, rgba(255, 255, 255, 0.5));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.reveal-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reveal-key {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.reveal-val {
+  font-weight: 700;
+  color: #4A4035;
+}
+
+.reveal-val.symbol {
+  font-size: 24px;
+  letter-spacing: 1px;
+}
+
+.reveal-val.formula {
+  font-size: 20px;
+}
+
 @media (max-width: 640px) {
   .panel {
     top: auto;
