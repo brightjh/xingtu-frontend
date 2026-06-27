@@ -39,7 +39,7 @@ export function Hud({ showLitLabels, onToggleLitLabels, subjectId, onSubjectChan
         <h1>星图 · {subject.name}</h1>
         <p>
           {mode === 'formula'
-            ? '点击星星，根据元素谜面输入化学式，答对即可点亮 ✦'
+            ? '点击星星，根据元素谜面输入元素符号（区分大小写），答对即可点亮 ✦'
             : '点击星星查看知识点并做题，答对全部题目即可点亮 ✦'}
         </p>
       </div>

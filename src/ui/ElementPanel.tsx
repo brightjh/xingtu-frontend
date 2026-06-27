@@ -9,19 +9,9 @@ type Props = {
   onClose: () => void
 }
 
-/** 下标数字 ₀-₉ → 普通数字，便于把 H₂ 与用户输入的 H2 统一比较 */
-const SUBSCRIPTS: Record<string, string> = {
-  '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
-  '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
-}
-
-/** 归一化：去空格、转小写、下标转普通数字——对初中生足够宽容 */
-function normalize(s: string): string {
-  return s
-    .trim()
-    .replace(/[₀-₉]/g, (d) => SUBSCRIPTS[d] ?? d)
-    .replace(/\s+/g, '')
-    .toLowerCase()
+/** 仅去除空格，保留大小写——化学符号严格区分大小写（Na ≠ na、Cl ≠ cl） */
+function clean(s: string): string {
+  return s.replace(/\s+/g, '')
 }
 
 export function ElementPanel({ point, onClose }: Props) {
@@ -38,15 +28,11 @@ export function ElementPanel({ point, onClose }: Props) {
 
   const revealed = alreadyLit || justSolved
 
-  // 可接受答案：元素符号 + 单质化学式（两种写法皆可）
-  const accepted = new Set(
-    [point.symbol, point.formula].filter(Boolean).map((a) => normalize(a as string)),
-  )
-
   const onSubmit = (e: SyntheticEvent) => {
     e.preventDefault()
     if (revealed) return
-    const correct = accepted.has(normalize(input))
+    // 答案就是元素符号，严格区分大小写
+    const correct = !!point.symbol && clean(input) === clean(point.symbol)
     if (correct) {
       submitFormula(subject.id, point.id, true)
       setJustSolved(true)
@@ -77,7 +63,7 @@ export function ElementPanel({ point, onClose }: Props) {
         {!revealed ? (
           <form className="formula-form" onSubmit={onSubmit}>
             <label className="panel-h3" htmlFor="formula-input">
-              输入化学式（元素符号或单质化学式）
+              输入元素符号（区分大小写，如 Na）
             </label>
             <input
               id="formula-input"
@@ -87,7 +73,7 @@ export function ElementPanel({ point, onClose }: Props) {
                 setInput(e.target.value)
                 if (status === 'wrong') setStatus('idle')
               }}
-              placeholder="例如 H 或 H₂"
+              placeholder="例如 H"
               autoComplete="off"
               autoCapitalize="off"
               spellCheck={false}
